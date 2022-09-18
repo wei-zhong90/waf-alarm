@@ -1,0 +1,39 @@
+{
+    "timestamp": 1663471020628,
+    "formatVersion": 1,
+    "webaclId": "arn:aws:wafv2:ap-northeast-1:159089215924:regional/webacl/waf-test/b7834b9c-841d-45cc-980a-fc5ed283943f",
+    "terminatingRuleId": "block-my-instance",
+    "terminatingRuleType": "REGULAR",
+    "action": "BLOCK",
+    "terminatingRuleMatchDetails": [],
+    "httpSourceName": "ALB",
+    "httpSourceId": "159089215924-app/test-waf/a5b7cb337ea3714c",
+    "ruleGroupList": [],
+    "rateBasedRuleList": [],
+    "nonTerminatingMatchingRules": [],
+    "requestHeadersInserted": null,
+    "responseCodeSent": 407,
+    "httpRequest": {
+        "clientIp": "54.238.92.158",
+        "country": "JP",
+        "headers": [
+            {
+                "name": "Host",
+                "value": "test-waf-863570124.ap-northeast-1.elb.amazonaws.com"
+            },
+            {
+                "name": "User-Agent",
+                "value": "curl/7.79.1"
+            },
+            {
+                "name": "Accept",
+                "value": "*/*"
+            }
+        ],
+        "uri": "/",
+        "args": "",
+        "httpVersion": "HTTP/1.1",
+        "httpMethod": "GET",
+        "requestId": "1-63268dac-77cb592e3576b9d44a9e0ef3"
+    }
+}

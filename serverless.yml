@@ -1,0 +1,116 @@
+# Welcome to Serverless!
+#
+# This file is the main config file for your service.
+# It's very minimal at this point and uses default values.
+# You can always add more config options for more control.
+# We've included some commented out config examples here.
+# Just uncomment any of them to get that config option.
+#
+# For full config options, check the docs:
+#    docs.serverless.com
+#
+# Happy Coding!
+
+service: waf-alarms
+# app and org for use with dashboard.serverless.com
+#app: your-app-name
+#org: your-org-name
+
+# You can pin your service to only deploy with a specific Serverless version
+# Check out our docs for more details
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: go1.x
+
+# you can overwrite defaults here
+  stage: dev
+  region: ap-northeast-1
+
+# you can add statements to the Lambda function's IAM Role here
+  iam:
+    role:
+      statements:
+        - Effect: "Allow"
+          Action:
+            - "dynamodb:UpdateItem"
+          Resource: !GetAtt logTable.Arn
+        - Effect: "Allow"
+          Action:
+            - "sns:Publish"
+          Resource: !Ref alarmTopic
+
+# you can define service wide environment variables here
+#  environment:
+#    variable1: value1
+
+package:
+  patterns:
+    - '!./**'
+    - ./bin/**
+
+functions:
+  eventConsumer:
+    handler: bin/eventconsumer
+    events:
+      - stream:
+          type: kinesis
+          bisectBatchOnFunctionError: true
+          batchSize: 1000
+          batchWindow: 60
+          maximumRetryAttempts: 10
+          startingPosition: LATEST
+          enabled: true
+          arn:
+            Fn::GetAtt:
+              - eventStream
+              - Arn
+
+#    Define function environment variables here
+    environment:
+      TABLENAME: !Ref logTable
+      TOPIC: !Ref alarmTopic
+
+# you can add CloudFormation resource templates here
+resources:
+  Resources:
+    alarmTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        DisplayName: WAFALARM
+        TopicName: wafalarm
+    logTable:
+      Type: AWS::DynamoDB::Table
+      Properties: 
+        AttributeDefinitions: 
+          - 
+            AttributeName: "ClientIP"
+            AttributeType: "S"
+          - 
+            AttributeName: "Timestamp"
+            AttributeType: "N"
+        KeySchema: 
+          - 
+            AttributeName: "ClientIP"
+            KeyType: "HASH"
+          - 
+            AttributeName: "Timestamp"
+            KeyType: "RANGE"
+        TableName: "WAFLogTable"
+        BillingMode: PAY_PER_REQUEST
+        TimeToLiveSpecification:
+            AttributeName: ExpireTime
+            Enabled: true
+
+    eventStream:
+      Type: AWS::Kinesis::Stream
+      Properties: 
+        Name: block-event-stream
+        StreamModeDetails: 
+          StreamMode: ON_DEMAND
+
+#  Outputs:
+#     NewOutput:
+#       Description: "Description for the output"
+#       Value: "Some output value"
