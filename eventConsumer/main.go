@@ -23,6 +23,7 @@ var svc = dynamodb.New(session.New())
 var notification = sns.New(session.New())
 
 var tablename = os.Getenv("TABLENAME")
+var ipTablename = os.Getenv("IPTABLENAME")
 
 // UnixTime is our magic type
 type UnixTime struct {
@@ -205,10 +206,25 @@ func UploadDDB(sip string, utimestamp UnixTime, messageDetail ...string) error {
 		UpdateExpression: aws.String("SET #FTS = :fts, #ET = :et, #MD = :md, #AD = :ad"),
 	}
 
+	ipInput := &dynamodb.UpdateItemInput{
+		Key: map[string]*dynamodb.AttributeValue{
+			"ClientIP": {
+				S: aws.String(sip),
+			},
+		},
+		TableName: aws.String(ipTablename),
+	}
+
 	_, err := svc.UpdateItem(input)
 	if err != nil {
 		log.Println(err)
 		return err
+	}
+
+	_, iperr := svc.UpdateItem(ipInput)
+	if iperr != nil {
+		log.Println(iperr)
+		return iperr
 	}
 
 	// log.Println(result)

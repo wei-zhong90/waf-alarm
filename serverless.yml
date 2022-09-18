@@ -35,7 +35,7 @@ provider:
         - Effect: "Allow"
           Action:
             - "dynamodb:UpdateItem"
-          Resource: !GetAtt logTable.Arn
+          Resource: [!GetAtt logTable.Arn, !GetAtt ipTable.Arn]
         - Effect: "Allow"
           Action:
             - "sns:Publish"
@@ -51,6 +51,13 @@ package:
     - ./bin/**
 
 functions:
+  # checkRule:
+  #   handler: bin/checkrule
+  #   events:
+  #     - eventBridge:
+  #         enabled: true
+  #         schedule: rate(5 minutes)
+          
   eventConsumer:
     handler: bin/eventconsumer
     events:
@@ -70,6 +77,7 @@ functions:
 #    Define function environment variables here
     environment:
       TABLENAME: !Ref logTable
+      IPTABLENAME: !Ref ipTable
       TOPIC: !Ref alarmTopic
 
 # you can add CloudFormation resource templates here
@@ -80,6 +88,19 @@ resources:
       Properties:
         DisplayName: WAFALARM
         TopicName: wafalarm
+    ipTable:
+      Type: AWS::DynamoDB::Table
+      Properties: 
+        AttributeDefinitions: 
+          - 
+            AttributeName: "ClientIP"
+            AttributeType: "S"
+        KeySchema: 
+          - 
+            AttributeName: "ClientIP"
+            KeyType: "HASH"
+        TableName: "IpTable"
+        BillingMode: PAY_PER_REQUEST
     logTable:
       Type: AWS::DynamoDB::Table
       Properties: 
